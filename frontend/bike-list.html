@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Browse 30+ premium bikes for rent across India. Filter by type, city, price and rating. Mountain, Road, Electric, City and Hybrid bikes available.">
+<meta property="og:title" content="Browse All Bikes — RentBike">
+<meta property="og:description" content="Find the perfect ride from 30+ premium bikes across 5 categories in 15+ Indian cities.">
+<meta property="og:type" content="website">
+<title>Browse All Bikes — RentBike</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif}
+h1,h2,.fd{font-family:'Syne',sans-serif}
+body{background:#0a0a14;color:#f1f1f1;min-height:100vh}
+.sidebar{background:#111120;border:1px solid rgba(255,255,255,.07);border-radius:18px}
+.inp{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;outline:none;transition:border .2s;box-sizing:border-box}
+.inp:focus{border-color:#f59e0b}
+.inp::placeholder{color:rgba(255,255,255,.3)}
+.inp option{background:#1a1a2e}
+.chip{padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:#9ca3af;cursor:pointer;font-size:13px;transition:all .2s;text-align:left;width:100%;display:flex;align-items:center;gap:8px}
+.chip:hover,.chip.active{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.4);color:#f59e0b}
+.chip:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+.btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0a14;font-weight:700;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;font-size:13px;transition:all .2s}
+.btn:hover{opacity:.9;transform:translateY(-1px)}
+.btn:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+.active-badge{display:inline-block;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0a14;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px}
+.cat-link{text-decoration:none;font-size:12px;font-weight:700;padding:7px 14px;border-radius:10px;transition:opacity .2s}
+.cat-link:hover{opacity:.8}
+.clear-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:13px;padding:10px 16px;border-radius:10px;cursor:pointer;transition:all .2s}
+.clear-btn:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.clear-btn:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;animation:spin 1s linear infinite}
+</style>
+</head>
+<body>
+
+<!-- Navbar placeholder — populated by js/app.js renderNav() -->
+<nav id="navbar" aria-label="Main navigation"></nav>
+
+<!-- Page header -->
+<header style="background:linear-gradient(135deg,rgba(245,158,11,.05),transparent),#0a0a14;border-bottom:1px solid rgba(255,255,255,.06);padding:32px 24px">
+  <div style="max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+    <div>
+      <div style="color:#f59e0b;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Browse Fleet</div>
+      <h1 class="fd" style="font-size:32px;font-weight:900;color:#fff;margin-bottom:4px;letter-spacing:-1px">All Bikes</h1>
+      <p style="color:#9ca3af;font-size:14px">Find the perfect ride — 30 premium bikes across 5 categories</p>
+    </div>
+    <nav aria-label="Filter by category" style="display:flex;gap:10px;flex-wrap:wrap">
+      <a href="bike-list.html?type=mountain" class="cat-link" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e">Mountain</a>
+      <a href="bike-list.html?type=road"     class="cat-link" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#3b82f6">Road</a>
+      <a href="bike-list.html?type=electric" class="cat-link" style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);color:#a855f7">Electric</a>
+      <a href="bike-list.html?type=city"     class="cat-link" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:#f97316">City</a>
+      <a href="bike-list.html?type=hybrid"   class="cat-link" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);color:#14b8a6">Hybrid</a>
+    </nav>
+  </div>
+</header>
+
+<div style="max-width:1280px;margin:0 auto;padding:24px">
+
+  <!-- Search bar -->
+  <div style="background:#111120;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px;display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px" role="search">
+    <label for="f-search" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Search bikes</label>
+    <input id="f-search" type="search" class="inp" placeholder="Search by name or brand…" style="flex:1;min-width:180px" onkeydown="if(event.key==='Enter')applyFilters()">
+
+    <label for="f-loc" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">City or location</label>
+    <input id="f-loc" type="text" class="inp" placeholder="City or location" style="width:180px" onkeydown="if(event.key==='Enter')applyFilters()">
+
+    <label for="f-sort" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Sort order</label>
+    <select id="f-sort" class="inp" style="width:170px">
+      <option value="newest">Newest First</option>
+      <option value="price_asc">Price: Low to High</option>
+      <option value="price_desc">Price: High to Low</option>
+      <option value="rating">Highest Rated</option>
+    </select>
+
+    <button class="btn" onclick="applyFilters()" aria-label="Search bikes">Search</button>
+    <button class="clear-btn" onclick="clearFilters()">Clear</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:230px 1fr;gap:20px;align-items:start">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" style="padding:20px;position:sticky;top:80px" aria-label="Filter options">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <span style="color:#fff;font-weight:800;font-size:16px;font-family:'Syne',sans-serif">Filters</span>
+        <button onclick="clearFilters()" style="color:#f59e0b;background:none;border:none;cursor:pointer;font-size:12px;font-weight:700" aria-label="Reset all filters">Reset all</button>
+      </div>
+
+      <!-- Type filter -->
+      <div style="margin-bottom:22px">
+        <div style="color:#6b7280;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px" id="type-label">Bike Type</div>
+        <div style="display:flex;flex-direction:column;gap:5px" id="type-chips" role="group" aria-labelledby="type-label">
+          <button class="chip active" data-type="" onclick="selectType('',this)">All Types <span id="cnt-all" class="active-badge"></span></button>
+          <button class="chip" data-type="mountain" onclick="selectType('mountain',this)">Mountain</button>
+          <button class="chip" data-type="road"     onclick="selectType('road',this)">Road</button>
+          <button class="chip" data-type="electric" onclick="selectType('electric',this)">Electric</button>
+          <button class="chip" data-type="city"     onclick="selectType('city',this)">City</button>
+          <button class="chip" data-type="hybrid"   onclick="selectType('hybrid',this)">Hybrid</button>
+        </div>
+      </div>
+
+      <!-- Price filter -->
+      <div style="margin-bottom:22px">
+        <div style="color:#6b7280;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Max Price / Hour</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#9ca3af;margin-bottom:8px">
+          <span>₹50</span>
+          <span style="color:#f59e0b;font-weight:700">₹<span id="max-lbl">300</span>/hr</span>
+        </div>
+        <label for="f-max-price" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Maximum price per hour</label>
+        <input id="f-max-price" type="range" min="50" max="300" value="300" step="10"
+               style="width:100%;accent-color:#f59e0b"
+               oninput="document.getElementById('max-lbl').textContent=this.value"
+               aria-valuemin="50" aria-valuemax="300" aria-valuenow="300" aria-label="Maximum price per hour in rupees">
+        <div style="display:flex;justify-content:space-between;margin-top:8px;gap:6px">
+          <button onclick="setPricePreset(100)" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#9ca3af;font-size:10px;padding:5px;border-radius:7px;cursor:pointer" aria-label="Set max price to 100 rupees per hour">≤₹100</button>
+          <button onclick="setPricePreset(200)" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#9ca3af;font-size:10px;padding:5px;border-radius:7px;cursor:pointer" aria-label="Set max price to 200 rupees per hour">≤₹200</button>
+          <button onclick="setPricePreset(300)" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#9ca3af;font-size:10px;padding:5px;border-radius:7px;cursor:pointer" aria-label="Any price">Any</button>
+        </div>
+      </div>
+
+      <!-- City filter — rendered via JS -->
+      <div style="margin-bottom:22px">
+        <div style="color:#6b7280;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px" id="city-label">City</div>
+        <div id="city-chips" style="display:flex;flex-direction:column;gap:4px" role="group" aria-labelledby="city-label"></div>
+      </div>
+
+      <!-- Availability -->
+      <div style="margin-bottom:22px">
+        <div style="color:#6b7280;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Availability</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#d1d5db">
+          <input id="f-avail" type="checkbox" checked style="accent-color:#f59e0b;width:15px;height:15px">
+          Available only
+        </label>
+      </div>
+
+      <!-- Rating -->
+      <div style="margin-bottom:22px">
+        <label for="f-rating" style="color:#6b7280;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:10px">Min Rating</label>
+        <select id="f-rating" class="inp" style="font-size:12px">
+          <option value="0">Any Rating</option>
+          <option value="4">4.0+</option>
+          <option value="4.5">4.5+</option>
+          <option value="4.8">4.8+</option>
+        </select>
+      </div>
+
+      <button class="btn" style="width:100%;padding:12px" onclick="applyFilters()">Apply Filters</button>
+    </aside>
+
+    <!-- Main grid -->
+    <main aria-live="polite" aria-label="Bike listings">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <p id="result-count" style="color:#9ca3af;font-size:13px;font-weight:600" aria-live="polite">Loading…</p>
+        <div style="display:flex;gap:8px" role="group" aria-label="View mode">
+          <button id="view-grid" onclick="setView('grid')" style="background:#f59e0b;color:#0a0a14;border:none;padding:7px 12px;border-radius:9px;cursor:pointer;font-size:12px;font-weight:700" aria-pressed="true" aria-label="Grid view">Grid</button>
+          <button id="view-list" onclick="setView('list')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#9ca3af;padding:7px 12px;border-radius:9px;cursor:pointer;font-size:12px" aria-pressed="false" aria-label="List view">List</button>
+        </div>
+      </div>
+      <div id="bikes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px"></div>
+      <nav id="pagination" style="display:flex;justify-content:center;gap:8px;margin-top:28px" aria-label="Pagination"></nav>
+    </main>
+
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// Guard: no-op if app.js fails to load
+if (typeof renderNav === 'function') renderNav();
+
+var selectedType = '';
+var currentPage  = 1;
+var viewMode     = 'grid';
+
+// Render city chips via JS (avoids template literal in raw HTML)
+var cities = ['Hyderabad','Bangalore','Mumbai','Delhi','Pune','Chennai'];
+var cityChipsEl = document.getElementById('city-chips');
+if (cityChipsEl) {
+  cityChipsEl.innerHTML = cities.map(function(c) {
+    return '<button class="chip" onclick="setCity(\'' + c + '\')">' + c + '</button>';
+  }).join('');
+}
+
+function setCity(city) {
+  document.getElementById('f-loc').value = city;
+  applyFilters();
+}
+
+function setPricePreset(val) {
+  var slider = document.getElementById('f-max-price');
+  slider.value = val;
+  slider.setAttribute('aria-valuenow', val);
+  document.getElementById('max-lbl').textContent = val;
+}
+
+// Read URL params on load
+(function() {
+  var P = new URLSearchParams(location.search);
+  if (P.get('location')) document.getElementById('f-loc').value    = P.get('location');
+  if (P.get('search'))   document.getElementById('f-search').value = P.get('search');
+  if (P.get('sort'))     document.getElementById('f-sort').value   = P.get('sort');
+  if (P.get('type')) {
+    selectedType = P.get('type');
+    var btn = document.querySelector('[data-type="' + selectedType + '"]');
+    selectType(selectedType, btn);
+  }
+})();
+
+function setView(mode) {
+  viewMode = mode;
+  var gridBtn = document.getElementById('view-grid');
+  var listBtn = document.getElementById('view-list');
+  var isGrid  = mode === 'grid';
+
+  gridBtn.style.background = isGrid ? '#f59e0b' : 'rgba(255,255,255,.06)';
+  gridBtn.style.color      = isGrid ? '#0a0a14' : '#9ca3af';
+  gridBtn.setAttribute('aria-pressed', isGrid ? 'true' : 'false');
+
+  listBtn.style.background = !isGrid ? '#f59e0b' : 'rgba(255,255,255,.06)';
+  listBtn.style.color      = !isGrid ? '#0a0a14' : '#9ca3af';
+  listBtn.setAttribute('aria-pressed', !isGrid ? 'true' : 'false');
+
+  document.getElementById('bikes-grid').style.gridTemplateColumns =
+    isGrid ? 'repeat(auto-fill,minmax(270px,1fr))' : '1fr';
+}
+
+function selectType(t, btn) {
+  selectedType = t;
+  document.querySelectorAll('.chip[data-type]').forEach(function(c) { c.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  applyFilters();
+}
+
+function clearFilters() {
+  selectedType = '';
+  document.getElementById('f-search').value      = '';
+  document.getElementById('f-loc').value         = '';
+  document.getElementById('f-sort').value        = 'newest';
+  document.getElementById('f-avail').checked     = true;
+  document.getElementById('f-rating').value      = '0';
+  setPricePreset(300);
+  document.querySelectorAll('.chip[data-type]').forEach(function(c) { c.classList.remove('active'); });
+  var allBtn = document.querySelector('[data-type=""]');
+  if (allBtn) allBtn.classList.add('active');
+  applyFilters();
+}
+
+async function applyFilters(page) {
+  page = page || 1;
+  currentPage = page;
+
+  var search    = document.getElementById('f-search').value.trim();
+  var locVal    = document.getElementById('f-loc').value.trim();
+  var maxPrice  = parseInt(document.getElementById('f-max-price').value, 10);
+  var sort      = document.getElementById('f-sort').value;
+  var availOnly = document.getElementById('f-avail').checked;
+  var minRating = parseFloat(document.getElementById('f-rating').value);
+
+  var grid = document.getElementById('bikes-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#6b7280"><div style="font-size:36px;margin-bottom:12px" class="spinner" aria-hidden="true">&#x1F504;</div><p>Finding bikes…</p></div>';
+  document.getElementById('result-count').textContent = 'Loading…';
+
+  var bikes = [], total = 0, pages = 1;
+
+  try {
+    if (typeof api === 'undefined') throw new Error('api not available');
+    var params = new URLSearchParams({ page: page, per_page: 30, sort: sort });
+    if (search)       params.set('search', search);
+    if (locVal)       params.set('location', locVal);
+    if (selectedType) params.set('type', selectedType);
+    params.set('max_price', maxPrice);
+    params.set('available', availOnly);
+    var res = await api.get('/bikes/?' + params.toString());
+    bikes = res.bikes  || [];
+    total = res.total  || 0;
+    pages = res.pages  || 1;
+  } catch (e) {
+    if (typeof demoBikes !== 'function' || typeof bikeCard !== 'function') {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px;color:#6b7280"><p>Unable to load bikes. Please refresh the page.</p></div>';
+      document.getElementById('result-count').textContent = 'Error loading bikes';
+      return;
+    }
+    var demo = demoBikes();
+    if (selectedType) demo = demo.filter(function(b) { return b.type === selectedType; });
+    if (search)       demo = demo.filter(function(b) { return (b.name + b.brand).toLowerCase().indexOf(search.toLowerCase()) !== -1; });
+    if (locVal)       demo = demo.filter(function(b) { return b.location.toLowerCase().indexOf(locVal.toLowerCase()) !== -1; });
+    if (availOnly)    demo = demo.filter(function(b) { return b.is_available; });
+    if (minRating > 0) demo = demo.filter(function(b) { return (b.rating || 0) >= minRating; });
+    demo = demo.filter(function(b) { return b.price_per_hour <= maxPrice; });
+    if (sort === 'price_asc')  demo.sort(function(a,b) { return a.price_per_hour - b.price_per_hour; });
+    if (sort === 'price_desc') demo.sort(function(a,b) { return b.price_per_hour - a.price_per_hour; });
+    if (sort === 'rating')     demo.sort(function(a,b) { return b.rating - a.rating; });
+    bikes = demo;
+    total = demo.length;
+    pages = 1;
+  }
+
+  // Update "All" chip count
+  var cntAll = document.getElementById('cnt-all');
+  if (cntAll && typeof demoBikes === 'function') cntAll.textContent = demoBikes().length;
+
+  // Result count message
+  var countEl = document.getElementById('result-count');
+  var typeLabel = selectedType ? ' &middot; <span style="color:#f59e0b">' + selectedType + '</span>' : '';
+  countEl.innerHTML = '<span style="color:#fff;font-weight:800">' + total + '</span> <span style="color:#6b7280">bike' + (total !== 1 ? 's' : '') + ' found</span>' + typeLabel;
+
+  if (!bikes.length) {
+    grid.innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:80px">' +
+        '<div style="font-size:56px;margin-bottom:16px" aria-hidden="true">&#x1F50D;</div>' +
+        '<h2 style="color:#fff;font-family:\'Syne\',sans-serif;font-size:20px;margin-bottom:8px">No bikes found</h2>' +
+        '<p style="color:#6b7280;margin-bottom:16px">Try adjusting your filters or search terms</p>' +
+        '<button onclick="clearFilters()" style="color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px">Clear all filters</button>' +
+      '</div>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  grid.innerHTML = bikes.map(bikeCard).join('');
+
+  // Pagination
+  var pgHtml = '';
+  if (pages > 1) {
+    for (var i = 1; i <= pages; i++) {
+      var isCurrent = (i === page);
+      pgHtml += '<button onclick="applyFilters(' + i + ')" ' +
+        'style="width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;' +
+        (isCurrent ? 'background:#f59e0b;color:#0a0a14' : 'background:#1f2937;color:#9ca3af') + '" ' +
+        'aria-label="Page ' + i + '" ' + (isCurrent ? 'aria-current="page"' : '') + '>' + i + '</button>';
+    }
+  }
+  document.getElementById('pagination').innerHTML = pgHtml;
+}
+
+applyFilters();
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Bookings — RentBike</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif}h1,.fd{font-family:'Syne',sans-serif}
+body{background:#0f0f1a;color:#f1f1f1;min-height:100vh}
+.bk-card{background:#16162a;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px;margin-bottom:12px;transition:border .2s}
+.bk-card:hover{border-color:rgba(245,158,11,.2)}
+.tab{padding:8px 0;border-bottom:2px solid transparent;color:#6b7280;font-size:14px;
+     cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;
+     transition:all .2s;white-space:nowrap;font-weight:500}
+.tab.active{border-color:#f59e0b;color:#f59e0b;font-weight:700}
+.sbadge{font-size:11px;font-weight:700;padding:3px 11px;border-radius:999px;display:inline-block}
+.s-pending  {background:rgba(245,158,11,.15);color:#f59e0b}
+.s-confirmed{background:rgba(96,165,250,.15);color:#60a5fa}
+.s-active   {background:rgba(52,211,153,.15);color:#34d399}
+.s-completed{background:rgba(107,114,128,.15);color:#9ca3af}
+.s-cancelled{background:rgba(239,68,68,.15);color:#f87171}
+.abtn{font-size:12px;padding:6px 13px;border-radius:8px;font-weight:700;cursor:pointer;border:none;transition:all .2s;text-decoration:none;display:inline-block}
+.abtn:hover{opacity:.85;transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<div style="max-width:860px;margin:0 auto;padding:28px 20px">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="fd" style="font-size:28px;font-weight:900;color:#fff;margin-bottom:4px">My Bookings</h1>
+      <p style="color:#9ca3af;font-size:14px">Track and manage all your bike rentals</p>
+    </div>
+    <a href="bike-list.html" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f0f1a;font-weight:700;padding:10px 18px;border-radius:11px;text-decoration:none;font-size:14px;transition:all .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">+ New Rental</a>
+  </div>
+
+  <!-- Status filter tabs -->
+  <div style="display:flex;gap:20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:20px;overflow-x:auto;padding-bottom:0">
+    <button class="tab active" onclick="filterBk('all',this)">All</button>
+    <button class="tab"        onclick="filterBk('pending',this)">Pending</button>
+    <button class="tab"        onclick="filterBk('confirmed',this)">Confirmed</button>
+    <button class="tab"        onclick="filterBk('active',this)">Active</button>
+    <button class="tab"        onclick="filterBk('completed',this)">Completed</button>
+    <button class="tab"        onclick="filterBk('cancelled',this)">Cancelled</button>
+  </div>
+
+  <!-- Count -->
+  <p id="count-label" style="color:#6b7280;font-size:13px;margin-bottom:14px"></p>
+
+  <!-- Bookings list -->
+  <div id="bk-list"><div style="text-align:center;padding:60px;color:#6b7280">Loading bookings…</div></div>
+
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1a1a2e;border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:28px;max-width:360px;width:100%;text-align:center">
+    <div style="font-size:44px;margin-bottom:12px">⚠️</div>
+    <h3 class="fd" style="color:#fff;font-size:20px;margin-bottom:8px">Cancel Booking?</h3>
+    <p style="color:#9ca3af;font-size:14px;margin-bottom:22px;line-height:1.6">This action cannot be undone. Any refund will be processed within 3–5 business days.</p>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeCancelModal()" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.15);color:#d1d5db;background:none;cursor:pointer;font-size:14px;font-weight:600">Keep Booking</button>
+      <button id="confirm-cancel-btn" style="flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;cursor:pointer;font-size:14px;font-weight:700">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+if (!auth.requireAuth('login.html')) throw '';
+renderNav();
+
+let allBk        = [];
+let pendingCancelId = null;
+
+/* ── Load bookings ──────────────────────────────────────── */
+async function load() {
+  document.getElementById('bk-list').innerHTML =
+    '<div style="text-align:center;padding:60px;color:#6b7280">Loading…</div>';
+  try {
+    allBk = await api.get('/bookings/my') || [];
+  } catch {
+    allBk = demoBookings();
+  }
+  render(allBk);
+}
+
+/* ── Filter by status ───────────────────────────────────── */
+function filterBk(status, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = status === 'all' ? allBk : allBk.filter(b => b.status === status);
+  render(filtered, status);
+}
+
+/* ── Render booking cards ───────────────────────────────── */
+function render(list, status = 'all') {
+  const countEl = document.getElementById('count-label');
+  countEl.textContent = `${list.length} booking${list.length !== 1 ? 's' : ''}${status !== 'all' ? ` · ${status}` : ''}`;
+
+  const el = document.getElementById('bk-list');
+  if (!list.length) {
+    el.innerHTML = `
+      <div style="text-align:center;padding:64px 20px">
+        <div style="font-size:52px;margin-bottom:14px">📋</div>
+        <h3 class="fd" style="color:#fff;font-size:20px;margin-bottom:8px">No bookings found</h3>
+        <p style="color:#6b7280;font-size:14px;margin-bottom:20px">
+          ${status === 'all' ? 'You haven\'t made any bookings yet.' : `No ${status} bookings.`}
+        </p>
+        <a href="bike-list.html" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f0f1a;font-weight:700;padding:11px 22px;border-radius:11px;text-decoration:none;font-size:14px">Browse Bikes</a>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(b => {
+    const canPay    = b.status === 'pending' && b.payment_status === 'unpaid';
+    const canCancel = ['pending', 'confirmed'].includes(b.status);
+    const canReview = b.status === 'completed';
+
+    return `
+    <div class="bk-card" id="bk-${b._id}">
+      <!-- Top row -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:54px;height:54px;border-radius:12px;background:#1f2937;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🏍️</div>
+          <div>
+            <div style="color:#fff;font-weight:700;font-size:16px">${b.bike_name || 'Bike Rental'}</div>
+            <div style="color:#9ca3af;font-size:13px;margin-top:2px">${b.bike_brand || ''} ${b.bike_type ? '· ' + b.bike_type : ''}</div>
+            <div style="color:#6b7280;font-size:12px;margin-top:2px">📍 ${b.pickup_location || '—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="sbadge s-${b.status}">${b.status.charAt(0).toUpperCase() + b.status.slice(1)}</span>
+          <div style="text-align:right">
+            <div style="color:#f59e0b;font-weight:800;font-size:20px">${fmt.money(b.total_amount)}</div>
+            <div style="color:${b.payment_status === 'paid' ? '#34d399' : '#f59e0b'};font-size:12px;font-weight:600">
+              ${b.payment_status === 'paid' ? '✓ Paid' : b.payment_status === 'refunded' ? '↩ Refunded' : '⏳ Unpaid'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px">
+          <div style="color:#6b7280;font-size:11px;margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Start</div>
+          <div style="color:#fff;font-size:13px;font-weight:600">${fmt.dt(b.start_time)}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px">
+          <div style="color:#6b7280;font-size:11px;margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">End</div>
+          <div style="color:#fff;font-size:13px;font-weight:600">${fmt.dt(b.end_time)}</div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${canPay ? `
+          <a href="payment.html?booking_id=${b._id}&amount=${b.total_amount}"
+             class="abtn" style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.35)">
+            💳 Pay Now
+          </a>` : ''}
+        ${canCancel ? `
+          <button onclick="openCancelModal('${b._id}')"
+                  class="abtn" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3)">
+            ✕ Cancel
+          </button>` : ''}
+        ${canReview ? `
+          <a href="bike-detail.html?id=${b.bike_id}"
+             class="abtn" style="background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3)">
+            ★ Write Review
+          </a>
+          <a href="bike-detail.html?id=${b.bike_id}"
+             class="abtn" style="background:rgba(255,255,255,.06);color:#d1d5db;border:1px solid rgba(255,255,255,.12)">
+            🔄 Book Again
+          </a>` : ''}
+        <span style="margin-left:auto;color:#374151;font-size:11px">ID: …${(b._id || '').slice(-8)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Cancel modal ───────────────────────────────────────── */
+function openCancelModal(id) {
+  pendingCancelId = id;
+  const modal = document.getElementById('cancel-modal');
+  modal.style.display = 'flex';
+  document.getElementById('confirm-cancel-btn').onclick = () => doCancel(id);
+}
+function closeCancelModal() {
+  document.getElementById('cancel-modal').style.display = 'none';
+  pendingCancelId = null;
+}
+
+/* ── Cancel booking ─────────────────────────────────────── */
+async function doCancel(id) {
+  const btn = document.getElementById('confirm-cancel-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Cancelling…';
+
+  try {
+    await api.put(`/bookings/${id}/cancel`);
+    // FIX: update allBk array in-place so re-renders are accurate
+    allBk = allBk.map(b => b._id === id ? { ...b, status: 'cancelled' } : b);
+    closeCancelModal();
+    toast('Booking cancelled successfully', 'success');
+    // Re-render current active tab
+    const activeTab = document.querySelector('.tab.active');
+    if (activeTab) filterBk(activeTab.textContent.toLowerCase().trim(), activeTab);
+    else render(allBk);
+  } catch (e) {
+    if (e.message === 'backend_offline') {
+      // Demo mode cancel
+      allBk = allBk.map(b => b._id === id ? { ...b, status: 'cancelled' } : b);
+      closeCancelModal();
+      toast('Booking cancelled (demo mode)', 'success');
+      render(allBk);
+    } else {
+      toast(e.message || 'Cancellation failed. Try again.', 'error');
+    }
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Yes, Cancel';
+  }
+}
+
+/* ── Close modal on backdrop click ─────────────────────── */
+document.getElementById('cancel-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCancelModal();
+});
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vendor Panel — RentBike</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif}h1,h2,.fd{font-family:'Syne',sans-serif}
+body{background:#0f0f1a;color:#f1f1f1;min-height:100vh}
+.card{background:#1a1a2e;border:1px solid rgba(255,255,255,.08);border-radius:16px}
+.inp{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;box-sizing:border-box;font-family:'DM Sans',sans-serif}
+.inp:focus{border-color:#f59e0b}
+.inp::placeholder{color:rgba(255,255,255,.3)}
+.inp option{background:#1f2937}
+.btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f0f1a;font-weight:700;border:none;border-radius:11px;padding:10px 18px;cursor:pointer;font-size:14px;transition:all .2s}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.tab{border-bottom:2px solid transparent;padding:9px 0;color:#6b7280;font-size:14px;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:all .2s;white-space:nowrap;font-weight:600}
+.tab.active{border-color:#f59e0b;color:#f59e0b}
+.sbadge{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px}
+.s-pending{background:rgba(245,158,11,.15);color:#f59e0b}.s-confirmed{background:rgba(96,165,250,.15);color:#60a5fa}
+.s-active{background:rgba(52,211,153,.15);color:#34d399}.s-completed{background:rgba(107,114,128,.15);color:#9ca3af}
+.s-cancelled{background:rgba(239,68,68,.15);color:#f87171}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+label{display:block;color:#9ca3af;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+    <div><h1 class="fd" style="font-size:28px;font-weight:900;color:#fff">Vendor Panel</h1><p style="color:#9ca3af;font-size:14px">Manage your bikes and bookings</p></div>
+    <button class="btn" onclick="openModal()">+ Add New Bike</button>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px">
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">🏍️</div><div id="v-total" class="fd" style="font-size:26px;font-weight:900;color:#fff">—</div><div style="color:#9ca3af;font-size:12px">Total Bikes</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">✅</div><div id="v-avail" class="fd" style="font-size:26px;font-weight:900;color:#34d399">—</div><div style="color:#9ca3af;font-size:12px">Available</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">📅</div><div id="v-bks"   class="fd" style="font-size:26px;font-weight:900;color:#60a5fa">—</div><div style="color:#9ca3af;font-size:12px">Bookings</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">⚡</div><div id="v-act"   class="fd" style="font-size:26px;font-weight:900;color:#f59e0b">—</div><div style="color:#9ca3af;font-size:12px">Active Now</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">💰</div><div id="v-rev"   class="fd" style="font-size:26px;font-weight:900;color:#34d399">—</div><div style="color:#9ca3af;font-size:12px">Revenue</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:20px">
+    <button class="tab active" onclick="showTab('bikes',this)">My Bikes</button>
+    <button class="tab"        onclick="showTab('bookings',this)">Bookings</button>
+  </div>
+
+  <div id="tab-bikes"></div>
+  <div id="tab-bookings" style="display:none"></div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="modal" class="overlay" style="display:none">
+  <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+      <h2 id="modal-title" class="fd" style="color:#fff;font-size:20px">Add New Bike</h2>
+      <button onclick="closeModal()" style="background:none;border:none;color:#9ca3af;font-size:22px;cursor:pointer">✕</button>
+    </div>
+    <input type="hidden" id="edit-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="grid-column:1/-1"><label>Bike Name *</label><input id="m-name" type="text" class="inp" placeholder="e.g. Trek X-Caliber 8"></div>
+      <div><label>Type *</label><select id="m-type" class="inp"><option value="mountain">Mountain</option><option value="road">Road</option><option value="electric">Electric</option><option value="city">City</option><option value="hybrid">Hybrid</option></select></div>
+      <div><label>Brand *</label><input id="m-brand" type="text" class="inp" placeholder="e.g. Trek"></div>
+      <div><label>Model *</label><input id="m-model" type="text" class="inp" placeholder="e.g. X-Caliber 8"></div>
+      <div><label>Year *</label><input id="m-year" type="number" class="inp" placeholder="2024" min="2000" max="2026"></div>
+      <div><label>Location *</label><input id="m-loc" type="text" class="inp" placeholder="City or area"></div>
+      <div><label>Price / Hour (₹) *</label><input id="m-pph" type="number" class="inp" placeholder="120" min="1"></div>
+      <div><label>Price / Day (₹) *</label><input id="m-ppd" type="number" class="inp" placeholder="800" min="1"></div>
+      <div style="grid-column:1/-1"><label>Image URL</label><input id="m-img" type="url" class="inp" placeholder="https://… (optional)"></div>
+      <div style="grid-column:1/-1"><label>Description</label><textarea id="m-desc" class="inp" rows="3" placeholder="Describe the bike…" style="resize:none"></textarea></div>
+      <div style="grid-column:1/-1"><label>Features (comma separated)</label><input id="m-feat" type="text" class="inp" placeholder="Disc brakes, 21-speed, LED lights"></div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:20px">
+      <button onclick="closeModal()" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.15);color:#d1d5db;background:none;cursor:pointer;font-size:14px">Cancel</button>
+      <button id="save-btn" class="btn" onclick="saveBike()" style="flex:1;padding:11px">Save Bike</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+if (!auth.requireAuth('login.html')) throw '';
+const U = auth.user();
+if (!['vendor','admin'].includes(U?.role)) { toast('Vendor access required','error'); setTimeout(()=>location.href='dashboard.html',1200); }
+renderNav();
+let editId = null;
+
+async function loadDash() {
+  try {
+    const d=await api.get('/vendor/dashboard');
+    document.getElementById('v-total').textContent=d.total_bikes;
+    document.getElementById('v-avail').textContent=d.available_bikes;
+    document.getElementById('v-bks').textContent=d.total_bookings;
+    document.getElementById('v-act').textContent=d.active_bookings;
+    document.getElementById('v-rev').textContent=fmt.money(d.total_revenue);
+  } catch { document.getElementById('v-total').textContent='3'; document.getElementById('v-avail').textContent='2'; document.getElementById('v-bks').textContent='12'; document.getElementById('v-act').textContent='1'; document.getElementById('v-rev').textContent='₹8,500'; }
+}
+
+function showTab(tab, btn) {
+  document.getElementById('tab-bikes').style.display    = tab==='bikes' ? '' : 'none';
+  document.getElementById('tab-bookings').style.display = tab==='bookings' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab==='bookings') loadBookings();
+}
+
+async function loadBikes() {
+  const el=document.getElementById('tab-bikes');
+  try {
+    const bikes=await api.get('/vendor/bikes');
+    if (!bikes.length) { el.innerHTML='<div style="text-align:center;padding:60px;color:#6b7280"><div style="font-size:48px;margin-bottom:12px">🏍️</div><p>No bikes yet. Add your first bike!</p></div>'; return; }
+    el.innerHTML = bikes.map(b=>`<div class="card" style="padding:18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:60px;height:60px;border-radius:12px;overflow:hidden;flex-shrink:0">
+          <img src="${b.image||'https://placehold.co/60x60/1a1a2e/f59e0b?text=🏍'}" style="width:100%;height:100%;object-fit:cover" onerror="this.outerHTML='<div style=\'font-size:28px;display:flex;align-items:center;justify-content:center;width:60px;height:60px\'>🏍️</div>'">
+        </div>
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:16px">${b.name}</div>
+          <div style="color:#9ca3af;font-size:13px">${b.brand} · ${b.type} · ${b.year} · 📍 ${b.location}</div>
+          <div style="color:${b.is_available?'#34d399':'#f87171'};font-size:12px;margin-top:2px">${b.is_available?'● Available':'✕ Unavailable'}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="text-align:right"><div style="color:#f59e0b;font-weight:800;font-size:18px">${fmt.money(b.price_per_hour)}/hr</div><div style="color:#9ca3af;font-size:12px">${fmt.money(b.price_per_day)}/day</div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="editBike(${JSON.stringify(b).replace(/'/g,'&#39;')})" style="font-size:12px;padding:6px 12px;border-radius:8px;background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.3);cursor:pointer;font-weight:600">Edit</button>
+          <button onclick="toggleAvail('${b._id}',${!b.is_available})" style="font-size:12px;padding:6px 12px;border-radius:8px;background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3);cursor:pointer;font-weight:600">${b.is_available?'Mark Busy':'Mark Free'}</button>
+          <button onclick="deleteBike('${b._id}')" style="font-size:12px;padding:6px 12px;border-radius:8px;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3);cursor:pointer;font-weight:600">Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+  } catch { el.innerHTML='<p style="color:#6b7280;text-align:center;padding:40px">Start the backend to manage bikes.</p>'; }
+}
+
+async function loadBookings() {
+  const el=document.getElementById('tab-bookings');
+  try {
+    const bks=await api.get('/vendor/bookings');
+    if (!bks.length) { el.innerHTML='<p style="color:#6b7280;text-align:center;padding:40px">No bookings yet</p>'; return; }
+    el.innerHTML = bks.map(b=>`<div class="card" style="padding:16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="color:#fff;font-weight:700">${b.bike_name||'Bike'}</div>
+          <div style="color:#9ca3af;font-size:13px">👤 ${b.user_name||'—'} · 📞 ${b.user_phone||'—'}</div>
+          <div style="color:#6b7280;font-size:12px">${fmt.dt(b.start_time)} → ${fmt.dt(b.end_time)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="color:#f59e0b;font-weight:800;font-size:17px">${fmt.money(b.total_amount)}</span>
+          <span class="sbadge s-${b.status}">${b.status}</span>
+          ${b.status==='pending'?`<button onclick="updateStatus('${b._id}','confirmed')" style="font-size:12px;padding:5px 10px;border-radius:8px;background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3);cursor:pointer;font-weight:600">Confirm</button>`:''}
+          ${b.status==='confirmed'?`<button onclick="updateStatus('${b._id}','active')" style="font-size:12px;padding:5px 10px;border-radius:8px;background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.3);cursor:pointer;font-weight:600">Mark Active</button>`:''}
+          ${b.status==='active'?`<button onclick="updateStatus('${b._id}','completed')" style="font-size:12px;padding:5px 10px;border-radius:8px;background:rgba(107,114,128,.15);color:#9ca3af;border:1px solid rgba(107,114,128,.3);cursor:pointer;font-weight:600">Complete</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+  } catch { el.innerHTML='<p style="color:#6b7280;text-align:center;padding:40px">Start the backend to see bookings.</p>'; }
+}
+
+async function updateStatus(id, status) {
+  try { await api.put(`/bookings/${id}/status`,{status}); toast(`Marked as ${status}`,'success'); loadBookings(); }
+  catch(e) { toast(e.message||'Failed','error'); }
+}
+
+function openModal(reset=true) {
+  if (reset) { editId=null; document.getElementById('modal-title').textContent='Add New Bike'; document.getElementById('edit-id').value=''; ['m-name','m-brand','m-model','m-loc','m-img','m-desc','m-feat'].forEach(i=>document.getElementById(i).value=''); document.getElementById('m-year').value=''; document.getElementById('m-pph').value=''; document.getElementById('m-ppd').value=''; document.getElementById('m-type').value='mountain'; }
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal() { document.getElementById('modal').style.display='none'; }
+
+function editBike(b) {
+  editId = b._id;
+  document.getElementById('modal-title').textContent = 'Edit Bike';
+  document.getElementById('edit-id').value = b._id;
+  document.getElementById('m-name').value  = b.name||'';
+  document.getElementById('m-type').value  = b.type||'mountain';
+  document.getElementById('m-brand').value = b.brand||'';
+  document.getElementById('m-model').value = b.model||'';
+  document.getElementById('m-year').value  = b.year||'';
+  document.getElementById('m-loc').value   = b.location||'';
+  document.getElementById('m-pph').value   = b.price_per_hour||'';
+  document.getElementById('m-ppd').value   = b.price_per_day||'';
+  document.getElementById('m-img').value   = b.image||'';
+  document.getElementById('m-desc').value  = b.description||'';
+  document.getElementById('m-feat').value  = (b.features||[]).join(', ');
+  openModal(false);
+}
+
+async function saveBike() {
+  const name=document.getElementById('m-name').value.trim(), brand=document.getElementById('m-brand').value.trim(),
+    model=document.getElementById('m-model').value.trim(), year=document.getElementById('m-year').value,
+    loc=document.getElementById('m-loc').value.trim(), pph=document.getElementById('m-pph').value,
+    ppd=document.getElementById('m-ppd').value;
+  if (!name||!brand||!model||!year||!loc||!pph||!ppd) return toast('Please fill all required fields','error');
+
+  const payload={ name, brand, model, year:parseInt(year), location:loc,
+    type:document.getElementById('m-type').value,
+    price_per_hour:parseFloat(pph), price_per_day:parseFloat(ppd),
+    image:document.getElementById('m-img').value.trim()||null,
+    description:document.getElementById('m-desc').value.trim(),
+    features:document.getElementById('m-feat').value.split(',').map(f=>f.trim()).filter(Boolean)
+  };
+
+  const btn=document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  try {
+    if (editId) { await api.put(`/bikes/${editId}`,payload); toast('Bike updated!','success'); }
+    else         { await api.post('/bikes/',payload); toast('Bike added!','success'); }
+    closeModal(); loadBikes(); loadDash();
+  } catch(e) { toast(e.message||'Failed','error'); }
+  finally { btn.disabled=false; btn.textContent='Save Bike'; }
+}
+
+async function toggleAvail(id, avail) {
+  try { await api.put(`/bikes/${id}`,{is_available:avail}); toast(avail?'Marked available':'Marked busy','success'); loadBikes(); }
+  catch(e) { toast(e.message||'Failed','error'); }
+}
+
+async function deleteBike(id) {
+  if (!confirm('Delete this bike? Cannot be undone.')) return;
+  try { await api.del(`/bikes/${id}`); toast('Bike deleted','success'); loadBikes(); loadDash(); }
+  catch(e) { toast(e.message||'Failed','error'); }
+}
+
+loadDash();
+loadBikes();
+</script>
+</body>
+</html>

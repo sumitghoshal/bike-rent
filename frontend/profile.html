@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Profile — RentBike</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif}h1,h2,.fd{font-family:'Syne',sans-serif}
+body{background:#0f0f1a;color:#f1f1f1;min-height:100vh}
+.card{background:#1a1a2e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px}
+.inp{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;box-sizing:border-box}
+.inp:focus{border-color:#f59e0b}
+.inp::placeholder{color:rgba(255,255,255,.3)}
+.btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f0f1a;font-weight:700;border:none;border-radius:11px;padding:11px 20px;cursor:pointer;font-size:14px;transition:all .2s}
+.btn:hover{opacity:.9}
+label{display:block;color:#9ca3af;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<div style="max-width:840px;margin:0 auto;padding:28px 20px">
+  <div style="margin-bottom:24px">
+    <h1 class="fd" style="font-size:28px;font-weight:900;color:#fff">My Profile</h1>
+    <p style="color:#9ca3af;font-size:14px">Manage your account settings</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <!-- Profile info -->
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px">
+        <div id="av" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(245,158,11,.3),rgba(245,158,11,.1));border:2px solid rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:900;font-size:26px;flex-shrink:0"></div>
+        <div>
+          <div id="d-name"  style="color:#fff;font-weight:700;font-size:18px"></div>
+          <div id="d-email" style="color:#9ca3af;font-size:14px"></div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <span id="d-role" style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.2)"></span>
+            <span id="d-kyc"  style="font-size:11px;padding:2px 8px;border-radius:999px"></span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div><label>Full Name</label><input type="text" id="e-name"  class="inp"></div>
+        <div><label>Phone Number</label><input type="tel" id="e-phone" class="inp"></div>
+        <div><label>Email (cannot change)</label><input type="email" id="e-email" class="inp" disabled style="opacity:.5;cursor:not-allowed"></div>
+        <button class="btn" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- KYC -->
+    <div class="card">
+      <h2 class="fd" style="color:#fff;font-size:18px;margin-bottom:8px">KYC Verification</h2>
+      <p style="color:#9ca3af;font-size:13px;margin-bottom:18px">Upload your driving license for identity verification. Required to unlock all features.</p>
+
+      <div id="kyc-msg" style="display:none;border-radius:10px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:10px"></div>
+
+      <div onclick="document.getElementById('lic').click()"
+        style="border:2px dashed rgba(255,255,255,.12);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:border .2s"
+        onmouseover="this.style.borderColor='rgba(245,158,11,.4)'"
+        onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
+        <div style="font-size:40px;margin-bottom:10px">🪪</div>
+        <p style="color:#d1d5db;font-size:14px;margin-bottom:4px">Click to upload Driving License</p>
+        <p style="color:#6b7280;font-size:12px">JPG, PNG or PDF · Max 16MB</p>
+        <input type="file" id="lic" style="display:none" accept="image/*,.pdf" onchange="prevFile(this)">
+      </div>
+
+      <div id="prev-box" style="display:none;margin-top:14px">
+        <img id="prev-img" style="width:100%;border-radius:10px;max-height:140px;object-fit:cover" alt="License preview">
+        <button class="btn" style="width:100%;margin-top:12px" onclick="uploadLic()">Upload License</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick links -->
+  <div class="card">
+    <h2 class="fd" style="color:#fff;font-size:18px;margin-bottom:16px">Quick Actions</h2>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <a href="dashboard.html" style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;transition:border .2s" onmouseover="this.style.borderColor='rgba(245,158,11,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+        <span style="font-size:22px">⊞</span><div><div style="color:#fff;font-weight:600;font-size:13px">Dashboard</div><div style="color:#6b7280;font-size:11px">Overview</div></div>
+      </a>
+      <a href="bookings.html" style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;transition:border .2s" onmouseover="this.style.borderColor='rgba(245,158,11,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+        <span style="font-size:22px">📅</span><div><div style="color:#fff;font-weight:600;font-size:13px">My Bookings</div><div style="color:#6b7280;font-size:11px">All rentals</div></div>
+      </a>
+      <a href="bike-list.html" style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;transition:border .2s" onmouseover="this.style.borderColor='rgba(245,158,11,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+        <span style="font-size:22px">🏍️</span><div><div style="color:#fff;font-weight:600;font-size:13px">Browse Bikes</div><div style="color:#6b7280;font-size:11px">Find a ride</div></div>
+      </a>
+      <button onclick="api.logout()" style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:12px;cursor:pointer;width:100%;text-align:left;transition:border .2s" onmouseover="this.style.borderColor='rgba(239,68,68,.4)'" onmouseout="this.style.borderColor='rgba(239,68,68,.2)'">
+        <span style="font-size:22px">🚪</span><div><div style="color:#f87171;font-weight:600;font-size:13px">Logout</div><div style="color:#6b7280;font-size:11px">Sign out</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+if (!auth.requireAuth('login.html')) throw '';
+renderNav();
+const U = auth.user();
+
+document.getElementById('av').textContent     = U?.name?.charAt(0)?.toUpperCase()||'U';
+document.getElementById('d-name').textContent  = U?.name||'';
+document.getElementById('d-email').textContent = U?.email||'';
+document.getElementById('d-role').textContent  = U?.role||'user';
+document.getElementById('e-name').value        = U?.name||'';
+document.getElementById('e-phone').value       = U?.phone||'';
+document.getElementById('e-email').value       = U?.email||'';
+
+const kyc = U?.kyc_status||'pending';
+const kEl  = document.getElementById('d-kyc');
+const kMap = { pending:{bg:'rgba(245,158,11,.12)',color:'#f59e0b',border:'rgba(245,158,11,.2)'}, approved:{bg:'rgba(52,211,153,.12)',color:'#34d399',border:'rgba(52,211,153,.2)'}, rejected:{bg:'rgba(239,68,68,.12)',color:'#f87171',border:'rgba(239,68,68,.2)'} };
+const km = kMap[kyc]||kMap.pending;
+kEl.textContent = `KYC: ${kyc}`;
+kEl.style.background = km.bg; kEl.style.color = km.color; kEl.style.border = `1px solid ${km.border}`;
+
+if (U?.license_image) {
+  const msg = document.getElementById('kyc-msg');
+  msg.style.display = 'flex';
+  msg.style.background = 'rgba(245,158,11,.08)';
+  msg.style.border = '1px solid rgba(245,158,11,.25)';
+  msg.innerHTML = '<span style="font-size:22px">⏳</span><div><div style="color:#f59e0b;font-weight:700;font-size:14px">License Uploaded</div><div style="color:#9ca3af;font-size:12px">Under review by admin</div></div>';
+}
+
+async function saveProfile() {
+  const name  = document.getElementById('e-name').value.trim();
+  const phone = document.getElementById('e-phone').value.trim();
+  if (!name) return toast('Name is required','error');
+  try {
+    await api.put('/auth/profile', {name, phone});
+    Object.assign(U, {name, phone});
+    localStorage.setItem('user', JSON.stringify(U));
+    document.getElementById('d-name').textContent = name;
+    document.getElementById('av').textContent     = name.charAt(0).toUpperCase();
+    toast('Profile updated!','success');
+  } catch(e) { toast(e.message||'Update failed','error'); }
+}
+
+function prevFile(inp) {
+  const file = inp.files[0]; if (!file) return;
+  if (file.size > 16*1024*1024) return toast('File too large (max 16MB)','error');
+  if (file.type.startsWith('image/')) {
+    const r = new FileReader();
+    r.onload = e => { document.getElementById('prev-img').src = e.target.result; };
+    r.readAsDataURL(file);
+  }
+  document.getElementById('prev-box').style.display = '';
+}
+
+async function uploadLic() {
+  const file = document.getElementById('lic').files[0];
+  if (!file) return toast('No file selected','error');
+  const fd = new FormData(); fd.append('license', file);
+  try {
+    await api.post('/auth/upload-license', fd, true);
+    toast('License uploaded! Awaiting admin review.','success');
+    const msg = document.getElementById('kyc-msg');
+    msg.style.display = 'flex';
+    msg.style.background = 'rgba(245,158,11,.08)';
+    msg.style.border = '1px solid rgba(245,158,11,.25)';
+    msg.innerHTML = '<span style="font-size:22px">⏳</span><div><div style="color:#f59e0b;font-weight:700;font-size:14px">License Uploaded</div><div style="color:#9ca3af;font-size:12px">Under review by admin</div></div>';
+    document.getElementById('prev-box').style.display = 'none';
+  } catch(e) { toast(e.message||'Upload failed','error'); }
+}
+</script>
+</body>
+</html>

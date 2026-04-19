@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel — RentBike</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif}h1,h2,.fd{font-family:'Syne',sans-serif}
+body{background:#0f0f1a;color:#f1f1f1;min-height:100vh}
+.card{background:#1a1a2e;border:1px solid rgba(255,255,255,.08);border-radius:14px}
+.tab{border-bottom:2px solid transparent;padding:9px 0;color:#6b7280;font-size:14px;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:all .2s;white-space:nowrap;font-weight:600}
+.tab.active{border-color:#f59e0b;color:#f59e0b}
+.sbadge{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px}
+.s-pending{background:rgba(245,158,11,.15);color:#f59e0b}.s-confirmed{background:rgba(96,165,250,.15);color:#60a5fa}
+.s-active{background:rgba(52,211,153,.15);color:#34d399}.s-completed{background:rgba(107,114,128,.15);color:#9ca3af}
+.s-cancelled{background:rgba(239,68,68,.15);color:#f87171}.s-approved{background:rgba(52,211,153,.15);color:#34d399}.s-rejected{background:rgba(239,68,68,.15);color:#f87171}
+.abtn{font-size:12px;padding:5px 10px;border-radius:8px;font-weight:700;cursor:pointer;border:none}
+.inp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;transition:border .2s}
+.inp:focus{border-color:#f59e0b}
+tr:hover td{background:rgba(255,255,255,.02)}
+th,td{padding:11px 16px}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<div style="max-width:1300px;margin:0 auto;padding:28px 20px">
+  <div style="margin-bottom:22px">
+    <h1 class="fd" style="font-size:28px;font-weight:900;color:#fff">Admin Panel</h1>
+    <p style="color:#9ca3af;font-size:14px">Platform overview and management</p>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">👥</div><div id="a-users"   class="fd" style="font-size:28px;font-weight:900;color:#fff">—</div><div style="color:#9ca3af;font-size:12px">Total Users</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">🏪</div><div id="a-vendors" class="fd" style="font-size:28px;font-weight:900;color:#60a5fa">—</div><div style="color:#9ca3af;font-size:12px">Vendors</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">🏍️</div><div id="a-bikes"   class="fd" style="font-size:28px;font-weight:900;color:#f59e0b">—</div><div style="color:#9ca3af;font-size:12px">Total Bikes</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">📅</div><div id="a-bks"     class="fd" style="font-size:28px;font-weight:900;color:#34d399">—</div><div style="color:#9ca3af;font-size:12px">Total Bookings</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">⚡</div><div id="a-active"  class="fd" style="font-size:28px;font-weight:900;color:#60a5fa">—</div><div style="color:#9ca3af;font-size:12px">Active Bookings</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">🪪</div><div id="a-kyc"     class="fd" style="font-size:28px;font-weight:900;color:#f87171">—</div><div style="color:#9ca3af;font-size:12px">Pending KYC</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">✅</div><div id="a-avail"   class="fd" style="font-size:28px;font-weight:900;color:#34d399">—</div><div style="color:#9ca3af;font-size:12px">Available Bikes</div></div>
+    <div class="card" style="padding:18px"><div style="font-size:22px;margin-bottom:6px">💰</div><div id="a-rev"     class="fd" style="font-size:28px;font-weight:900;color:#f59e0b">—</div><div style="color:#9ca3af;font-size:12px">Total Revenue</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:20px;overflow-x:auto">
+    <button class="tab active" onclick="showTab('users',this)">👥 Users</button>
+    <button class="tab" onclick="showTab('bookings',this)">📅 Bookings</button>
+    <button class="tab" onclick="showTab('kyc',this)">🪪 KYC Requests</button>
+  </div>
+
+  <!-- Users -->
+  <div id="tab-users">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <h2 class="fd" style="color:#fff;font-size:18px">All Users</h2>
+      <input type="text" class="inp" placeholder="Search name or email…" oninput="filterUsers(this.value)">
+    </div>
+    <div class="card" style="overflow:hidden">
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="border-bottom:1px solid rgba(255,255,255,.08);text-align:left;background:rgba(255,255,255,.02)">
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">User</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Role</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">KYC</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Status</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Joined</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Actions</th>
+          </tr></thead>
+          <tbody id="users-tbody" style="border-top:1px solid rgba(255,255,255,.06)"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookings -->
+  <div id="tab-bookings" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <h2 class="fd" style="color:#fff;font-size:18px">All Bookings</h2>
+      <select class="inp" onchange="filterBks(this.value)">
+        <option value="">All Statuses</option>
+        <option>pending</option><option>confirmed</option><option>active</option><option>completed</option><option>cancelled</option>
+      </select>
+    </div>
+    <div class="card" style="overflow:hidden">
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="border-bottom:1px solid rgba(255,255,255,.08);text-align:left;background:rgba(255,255,255,.02)">
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">ID</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Bike</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">User</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Amount</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Start</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Status</th>
+            <th style="color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Payment</th>
+          </tr></thead>
+          <tbody id="bks-tbody" style="border-top:1px solid rgba(255,255,255,.06)"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- KYC -->
+  <div id="tab-kyc" style="display:none">
+    <h2 class="fd" style="color:#fff;font-size:18px;margin-bottom:6px">KYC Verification Queue</h2>
+    <p style="color:#9ca3af;font-size:13px;margin-bottom:16px">Review and approve driving license uploads</p>
+    <div id="kyc-list"></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+if (!auth.requireAuth('login.html')) throw '';
+const U = auth.user();
+if (U?.role !== 'admin') { toast('Admin access required','error'); setTimeout(()=>location.href='dashboard.html',1200); }
+renderNav();
+
+let allUsers = [], allBks = [];
+
+async function loadData() {
+  // Stats
+  try {
+    const s = await api.get('/admin/stats');
+    document.getElementById('a-users').textContent   = s.total_users;
+    document.getElementById('a-vendors').textContent = s.total_vendors;
+    document.getElementById('a-bikes').textContent   = s.total_bikes;
+    document.getElementById('a-bks').textContent     = s.total_bookings;
+    document.getElementById('a-active').textContent  = s.active_bookings;
+    document.getElementById('a-kyc').textContent     = s.pending_kyc;
+    document.getElementById('a-avail').textContent   = s.available_bikes;
+    document.getElementById('a-rev').textContent     = fmt.money(s.total_revenue||0);
+  } catch {
+    ['a-users','a-vendors','a-bikes','a-bks','a-active','a-kyc','a-avail'].forEach((id,i)=>{document.getElementById(id).textContent=[248,35,142,1024,18,7,98][i];});
+    document.getElementById('a-rev').textContent = '₹2,45,800';
+  }
+  // Users
+  try { allUsers = await api.get('/admin/users') || []; }
+  catch { allUsers = demoUsers(); }
+  renderUsers(allUsers);
+  renderKYC();
+  // Bookings
+  try { allBks = await api.get('/admin/bookings') || []; }
+  catch { allBks = demoBookings(); }
+  renderBks(allBks);
+}
+
+function showTab(tab, btn) {
+  ['users','bookings','kyc'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
+  document.getElementById('tab-'+tab).style.display='';
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function renderUsers(list) {
+  const rBg  = {admin:'rgba(248,113,113,.15)',vendor:'rgba(96,165,250,.15)',user:'rgba(107,114,128,.15)'};
+  const rFg  = {admin:'#f87171',vendor:'#60a5fa',user:'#9ca3af'};
+  document.getElementById('users-tbody').innerHTML = list.map(u=>`
+    <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:900;font-size:14px;flex-shrink:0">${u.name.charAt(0).toUpperCase()}</div>
+          <div><div style="color:#fff;font-weight:600">${u.name}</div><div style="color:#6b7280;font-size:11px">${u.email}</div></div>
+        </div>
+      </td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:999px;background:${rBg[u.role]||''};color:${rFg[u.role]||'#9ca3af'}">${u.role}</span></td>
+      <td><span class="sbadge s-${u.kyc_status}">${u.kyc_status}</span></td>
+      <td style="${u.is_active?'color:#34d399':'color:#f87171'};font-size:12px">${u.is_active?'● Active':'✕ Suspended'}</td>
+      <td style="color:#9ca3af;font-size:12px">${fmt.date(u.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${u.kyc_status==='pending'&&u.license_image?`
+            <button class="abtn" onclick="doKYC('${u._id}','approved')" style="background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3)">✓ Approve</button>
+            <button class="abtn" onclick="doKYC('${u._id}','rejected')" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3)">✕ Reject</button>`:''}
+          <button class="abtn" onclick="doToggle('${u._id}',${u.is_active})" style="${u.is_active?'background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.3)':'background:rgba(52,211,153,.1);color:#34d399;border:1px solid rgba(52,211,153,.3)'}">${u.is_active?'Suspend':'Activate'}</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers(q) {
+  const f = q.toLowerCase();
+  renderUsers(q ? allUsers.filter(u=>(u.name+u.email).toLowerCase().includes(f)) : allUsers);
+}
+
+function renderBks(list) {
+  document.getElementById('bks-tbody').innerHTML = list.map(b=>`
+    <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+      <td style="color:#6b7280;font-family:monospace;font-size:11px">${(b._id||'').slice(-8)}</td>
+      <td style="color:#d1d5db">${b.bike_name||'—'}</td>
+      <td style="color:#d1d5db">${b.user_name||'—'}</td>
+      <td style="color:#f59e0b;font-weight:700">${fmt.money(b.total_amount)}</td>
+      <td style="color:#9ca3af;font-size:12px">${fmt.dt(b.start_time)}</td>
+      <td><span class="sbadge s-${b.status}">${b.status}</span></td>
+      <td style="font-size:12px;${b.payment_status==='paid'?'color:#34d399':'color:#f59e0b'}">${b.payment_status}</td>
+    </tr>`).join('');
+}
+function filterBks(s) { renderBks(s?allBks.filter(b=>b.status===s):allBks); }
+
+function renderKYC() {
+  const pending = allUsers.filter(u=>u.kyc_status==='pending'&&u.license_image);
+  const el = document.getElementById('kyc-list');
+  if (!pending.length) {
+    el.innerHTML='<div style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:12px">🎉</div><p style="color:#6b7280">No pending KYC requests!</p></div>';
+    return;
+  }
+  el.innerHTML = pending.map(u=>`
+    <div class="card" style="padding:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:900;font-size:18px">${u.name.charAt(0).toUpperCase()}</div>
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:15px">${u.name}</div>
+          <div style="color:#9ca3af;font-size:13px">${u.email}</div>
+          <div style="color:#f59e0b;font-size:12px;margin-top:3px">📄 ${u.license_image}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="doKYC('${u._id}','approved')" style="padding:8px 16px;border-radius:10px;background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3);cursor:pointer;font-weight:700;font-size:13px">✓ Approve</button>
+        <button onclick="doKYC('${u._id}','rejected')" style="padding:8px 16px;border-radius:10px;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3);cursor:pointer;font-weight:700;font-size:13px">✕ Reject</button>
+      </div>
+    </div>`).join('');
+}
+
+async function doKYC(id, status) {
+  try { await api.put(`/admin/kyc/${id}`,{status}); toast(`KYC ${status}`,'success'); }
+  catch { toast(`KYC ${status} (demo mode)`,'info'); }
+  allUsers = allUsers.map(u=>u._id===id?{...u,kyc_status:status}:u);
+  renderUsers(allUsers); renderKYC();
+}
+
+async function doToggle(id, cur) {
+  try { await api.put(`/admin/users/${id}/toggle`); } catch {}
+  allUsers = allUsers.map(u=>u._id===id?{...u,is_active:!cur}:u);
+  renderUsers(allUsers);
+  toast(cur?'User suspended':'User activated','success');
+}
+
+loadData();
+</script>
+</body>
+</html>

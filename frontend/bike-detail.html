@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bike Detail — RentBike</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif}
+h1,h2,h3,.fd{font-family:'Syne',sans-serif}
+body{background:#0f0f1a;color:#f1f1f1;min-height:100vh}
+.card{background:#1a1a2e;border:1px solid rgba(255,255,255,.08);border-radius:16px}
+.inp{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+     border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;
+     transition:border .2s;box-sizing:border-box;font-family:'DM Sans',sans-serif}
+.inp:focus{border-color:#f59e0b;background:rgba(245,158,11,.04)}
+.inp::placeholder{color:rgba(255,255,255,.3)}
+/* Primary action button */
+.btn{width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f0f1a;
+     font-weight:700;border:none;border-radius:12px;padding:14px;font-size:15px;
+     cursor:pointer;transition:all .25s;letter-spacing:.01em}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 32px rgba(245,158,11,.4)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+/* Secondary button */
+.btn2{width:100%;background:#1f2937;color:#d1d5db;border:1px solid rgba(255,255,255,.12);
+      border-radius:12px;padding:12px;font-size:14px;cursor:pointer;transition:all .2s;font-weight:600}
+.btn2:hover:not(:disabled){background:#374151;border-color:rgba(255,255,255,.2)}
+.btn2:disabled{opacity:.45;cursor:not-allowed}
+/* FIX: review modal — only ONE display property, using flex when shown */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);
+            z-index:9999;align-items:center;justify-content:center;padding:20px}
+label.field{display:block;color:#9ca3af;font-size:11px;font-weight:700;
+            letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<!-- Loading -->
+<div id="loading" style="display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px">
+  <div style="font-size:48px;animation:spin 2s linear infinite">🏍️</div>
+  <p style="color:#6b7280;font-size:15px">Loading bike details…</p>
+</div>
+<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+
+<!-- Main Content -->
+<div id="main" style="display:none;max-width:1200px;margin:0 auto;padding:28px 20px">
+
+  <!-- Breadcrumb -->
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#6b7280;margin-bottom:20px">
+    <a href="index.html"    style="color:#9ca3af;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#9ca3af'">Home</a>
+    <span>/</span>
+    <a href="bike-list.html" style="color:#9ca3af;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#9ca3af'">Browse</a>
+    <span>/</span>
+    <span id="bc-name" style="color:#d1d5db"></span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start">
+
+    <!-- ── Left Column ── -->
+    <div>
+      <!-- Image Card -->
+      <div class="card" style="overflow:hidden;margin-bottom:20px">
+        <div style="position:relative;height:340px">
+          <img id="b-img" src="" alt="" style="width:100%;height:100%;object-fit:cover"
+               onerror="this.src='https://placehold.co/800x400/1a1a2e/f59e0b?text=Bike'">
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),transparent);pointer-events:none"></div>
+          <span id="b-type" style="position:absolute;top:14px;left:14px;background:#f59e0b;color:#0f0f1a;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;text-transform:uppercase"></span>
+          <span id="b-avail" style="position:absolute;top:14px;right:14px;font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px"></span>
+        </div>
+      </div>
+
+      <!-- Info Card -->
+      <div class="card" style="padding:24px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:12px">
+          <div style="flex:1;min-width:0">
+            <h1 id="b-name" class="fd" style="font-size:28px;font-weight:900;color:#fff;margin-bottom:4px"></h1>
+            <p  id="b-meta" style="color:#9ca3af;font-size:14px"></p>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div id="b-price-h" style="color:#f59e0b;font-weight:900;font-size:28px"></div>
+            <div id="b-price-d" style="color:#9ca3af;font-size:13px"></div>
+          </div>
+        </div>
+
+        <!-- Rating row -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <span id="b-stars"   style="color:#f59e0b;font-size:18px;letter-spacing:2px"></span>
+          <span id="b-rating"  style="color:#fff;font-weight:700;font-size:15px"></span>
+          <span id="b-rev-cnt" style="color:#9ca3af;font-size:13px"></span>
+        </div>
+
+        <!-- Location -->
+        <div style="display:flex;align-items:center;gap:6px;color:#d1d5db;font-size:14px;margin-bottom:14px">
+          <span>📍</span><span id="b-location"></span>
+        </div>
+
+        <!-- Description -->
+        <p id="b-desc" style="color:#d1d5db;font-size:14px;line-height:1.75;margin-bottom:16px"></p>
+
+        <!-- Features -->
+        <div id="b-features" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      </div>
+
+      <!-- Reviews Card -->
+      <div class="card" style="padding:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <h2 class="fd" style="font-size:20px;font-weight:800;color:#fff;margin:0">Reviews</h2>
+          <button id="write-rev-btn" style="display:none;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#f59e0b;border-radius:10px;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:600;transition:background .2s"
+                  onmouseover="this.style.background='rgba(245,158,11,.22)'" onmouseout="this.style.background='rgba(245,158,11,.12)'"
+                  onclick="openRevModal()">✍ Write Review</button>
+        </div>
+        <div id="reviews-list">
+          <p style="color:#6b7280;font-size:14px;text-align:center;padding:32px">No reviews yet. Be the first!</p>
+        </div>
+      </div>
+    </div><!-- /left -->
+
+    <!-- ── Right Column: Booking Panel ── -->
+    <div>
+      <div class="card" style="padding:22px;position:sticky;top:76px">
+        <h2 class="fd" style="font-size:20px;font-weight:800;color:#fff;margin-bottom:18px">Book This Bike</h2>
+
+        <!-- Booking form fields -->
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">
+          <div>
+            <label class="field">Start Date & Time</label>
+            <input id="bk-start" type="datetime-local" class="inp" oninput="onTimeChange()">
+          </div>
+          <div>
+            <label class="field">End Date & Time</label>
+            <input id="bk-end" type="datetime-local" class="inp" oninput="onTimeChange()">
+          </div>
+          <div>
+            <label class="field">Pickup Location *</label>
+            <input id="bk-pickup" type="text" class="inp" placeholder="Enter full pickup address">
+          </div>
+          <div>
+            <label class="field">Special Notes (optional)</label>
+            <textarea id="bk-notes" class="inp" rows="2" placeholder="Helmet size, special requests…" style="resize:none"></textarea>
+          </div>
+        </div>
+
+        <!-- Cost estimate box (shows when valid dates entered) -->
+        <div id="cost-box" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+            <span style="color:#9ca3af">Duration</span><span id="est-dur" style="color:#fff;font-weight:600"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px">
+            <span style="color:#9ca3af">Rate</span><span id="est-rate" style="color:#fff;font-weight:600"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-weight:700;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)">
+            <span style="color:#fff">Estimated Total</span>
+            <span id="est-total" style="color:#f59e0b;font-size:20px"></span>
+          </div>
+        </div>
+
+        <!-- Availability status message -->
+        <div id="avail-msg" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:12px;text-align:center"></div>
+
+        <!-- Check Availability -->
+        <button id="check-btn" class="btn2" style="margin-bottom:10px" onclick="checkAvail()">
+          🔍 Check Availability
+        </button>
+
+        <!-- Book Now — enabled only after availability confirmed -->
+        <button id="book-btn" class="btn" disabled onclick="bookNow()">
+          Book Now
+        </button>
+
+        <!-- Login prompt for guests -->
+        <div id="login-prompt" style="display:none;margin-top:16px;text-align:center;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px">
+          <p style="color:#9ca3af;font-size:13px;margin-bottom:8px">Sign in to book this bike</p>
+          <a href="login.html" style="color:#f59e0b;font-weight:700;font-size:14px;text-decoration:none">Login / Register →</a>
+        </div>
+      </div>
+    </div><!-- /right -->
+
+  </div><!-- /grid -->
+</div><!-- /main -->
+
+<!-- ══ Review Modal ══════════════════════════════════════════════ -->
+<!-- FIX: removed duplicate display:none in style; use class show/hide instead -->
+<div id="rev-modal" class="modal-wrap" style="display:none">
+  <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 class="fd" style="color:#fff;font-size:20px;font-weight:800;margin:0">Write a Review</h3>
+      <button onclick="closeRevModal()" style="background:none;border:none;color:#9ca3af;font-size:22px;cursor:pointer;line-height:1;padding:4px">✕</button>
+    </div>
+
+    <!-- Star Rating -->
+    <div style="margin-bottom:18px">
+      <label class="field">Your Rating</label>
+      <div id="star-row" style="display:flex;gap:6px">
+        <button class="star-btn" data-v="1" onclick="setRating(1)" style="font-size:34px;background:none;border:none;cursor:pointer;color:#374151;transition:color .15s;padding:2px">★</button>
+        <button class="star-btn" data-v="2" onclick="setRating(2)" style="font-size:34px;background:none;border:none;cursor:pointer;color:#374151;transition:color .15s;padding:2px">★</button>
+        <button class="star-btn" data-v="3" onclick="setRating(3)" style="font-size:34px;background:none;border:none;cursor:pointer;color:#374151;transition:color .15s;padding:2px">★</button>
+        <button class="star-btn" data-v="4" onclick="setRating(4)" style="font-size:34px;background:none;border:none;cursor:pointer;color:#374151;transition:color .15s;padding:2px">★</button>
+        <button class="star-btn" data-v="5" onclick="setRating(5)" style="font-size:34px;background:none;border:none;cursor:pointer;color:#374151;transition:color .15s;padding:2px">★</button>
+      </div>
+      <p id="rating-label" style="color:#9ca3af;font-size:12px;margin-top:6px"></p>
+    </div>
+
+    <!-- Comment -->
+    <div style="margin-bottom:16px">
+      <label class="field">Your Review</label>
+      <textarea id="rev-comment" class="inp" rows="4"
+                placeholder="Share your riding experience — condition, comfort, value…"
+                style="resize:none"></textarea>
+    </div>
+
+    <!-- Select booking -->
+    <div style="margin-bottom:18px">
+      <label class="field">Select Booking</label>
+      <select id="rev-booking" class="inp">
+        <option value="">— Select a completed booking —</option>
+      </select>
+    </div>
+
+    <button onclick="submitReview()" class="btn">Submit Review</button>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+renderNav();
+
+/* ── Constants ─────────────────────────────────────────────── */
+const bikeId = new URLSearchParams(location.search).get('id');
+if (!bikeId) { location.href = 'bike-list.html'; }
+
+let bikeData   = null;
+let starRating = 0;
+const STAR_LABELS = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+/* ── Set default start/end times ───────────────────────────── */
+function setDefaultTimes() {
+  const n = new Date();
+  n.setSeconds(0, 0);
+  // Round up to next 30-min slot
+  n.setMinutes(Math.ceil(n.getMinutes() / 30) * 30);
+  const e = new Date(n.getTime() + 2 * 3600000);   // +2 hours
+  function toLocal(d) {
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  }
+  document.getElementById('bk-start').value = toLocal(n);
+  document.getElementById('bk-end').value   = toLocal(e);
+}
+setDefaultTimes();
+
+/* ── Load Bike Data ─────────────────────────────────────────── */
+async function loadBike() {
+  try {
+    bikeData = await api.get(`/bikes/${bikeId}`);
+  } catch (e) {
+    // Demo fallback
+    bikeData = demoBikes().find(b => b._id === bikeId) || demoBikes()[0];
+    bikeData.reviews = [];
+  }
+
+  if (!bikeData) { location.href = 'bike-list.html'; return; }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main').style.display    = '';
+
+  /* Populate fields */
+  const img = bikeData.image || `https://placehold.co/800x400/1a1a2e/f59e0b?text=${encodeURIComponent(bikeData.name)}`;
+  document.getElementById('b-img').src             = img;
+  document.getElementById('b-img').alt             = bikeData.name;
+  document.getElementById('bc-name').textContent   = bikeData.name;
+  document.getElementById('b-name').textContent    = bikeData.name;
+  document.getElementById('b-meta').textContent    = `${bikeData.brand} ${bikeData.model} · ${bikeData.year}`;
+  document.getElementById('b-price-h').textContent = `${fmt.money(bikeData.price_per_hour)}/hr`;
+  document.getElementById('b-price-d').textContent = `${fmt.money(bikeData.price_per_day)}/day`;
+  document.getElementById('b-location').textContent= bikeData.location;
+  document.getElementById('b-desc').textContent    = bikeData.description || 'A great bike for your adventure!';
+  document.getElementById('b-type').textContent    = bikeData.type;
+
+  /* Availability badge */
+  const avEl = document.getElementById('b-avail');
+  if (bikeData.is_available) {
+    avEl.textContent       = '● Available';
+    avEl.style.background  = 'rgba(16,185,129,.85)';
+    avEl.style.color       = '#fff';
+  } else {
+    avEl.textContent       = '✕ Unavailable';
+    avEl.style.background  = 'rgba(239,68,68,.85)';
+    avEl.style.color       = '#fff';
+  }
+
+  /* Rating */
+  const r = bikeData.rating || 0;
+  document.getElementById('b-stars').textContent   = fmt.stars(r);
+  document.getElementById('b-rating').textContent  = r.toFixed(1);
+  document.getElementById('b-rev-cnt').textContent = `(${bikeData.total_reviews || 0} reviews)`;
+
+  /* Features */
+  const feats = bikeData.features || [];
+  if (feats.length) {
+    document.getElementById('b-features').innerHTML = feats.map(f =>
+      `<span style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#f59e0b;font-size:12px;padding:3px 10px;border-radius:999px">${f}</span>`
+    ).join('');
+  }
+
+  /* Reviews */
+  renderReviews(bikeData.reviews || []);
+
+  /* Pre-fill pickup with bike's location */
+  document.getElementById('bk-pickup').value = bikeData.location;
+
+  /* Recalculate cost estimate */
+  calcCost();
+
+  /* Unavailable bike → disable booking */
+  if (!bikeData.is_available) {
+    setAvailMsg('✕ This bike is currently unavailable for booking', false);
+    document.getElementById('book-btn').disabled  = true;
+    document.getElementById('check-btn').disabled = true;
+    return;
+  }
+
+  /* Guest → show login prompt */
+  if (!auth.isLoggedIn()) {
+    document.getElementById('login-prompt').style.display = 'block';
+    document.getElementById('book-btn').disabled          = true;
+    document.getElementById('check-btn').disabled         = true;
+    return;
+  }
+
+  /* Logged in — enable check button, load their bookings for reviews */
+  document.getElementById('check-btn').disabled         = false;
+  document.getElementById('write-rev-btn').style.display = '';
+  loadMyCompletedBookings();
+}
+
+/* ── Render Reviews ─────────────────────────────────────────── */
+function renderReviews(reviews) {
+  const el = document.getElementById('reviews-list');
+  if (!reviews || !reviews.length) {
+    el.innerHTML = '<p style="color:#6b7280;font-size:14px;text-align:center;padding:32px">No reviews yet. Be the first to review!</p>';
+    return;
+  }
+  el.innerHTML = reviews.map(r => `
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:700;font-size:14px;flex-shrink:0">${(r.user_name || 'U').charAt(0).toUpperCase()}</div>
+          <span style="color:#fff;font-weight:600;font-size:14px">${r.user_name || 'Anonymous'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:3px">
+          <span style="color:#f59e0b;font-size:14px">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+          <span style="color:#fff;font-weight:700;font-size:13px;margin-left:4px">${r.rating}/5</span>
+        </div>
+      </div>
+      <p style="color:#d1d5db;font-size:13px;line-height:1.65;margin:0">${r.comment}</p>
+      <p style="color:#6b7280;font-size:11px;margin:6px 0 0">${fmt.date(r.created_at)}</p>
+    </div>
+  `).join('');
+}
+
+/* ── Cost Calculator (runs on every date change) ────────────── */
+function calcCost() {
+  if (!bikeData) return;
+  const s = new Date(document.getElementById('bk-start').value);
+  const e = new Date(document.getElementById('bk-end').value);
+  if (isNaN(s) || isNaN(e) || e <= s) {
+    document.getElementById('cost-box').style.display = 'none';
+    return;
+  }
+  const hours = (e - s) / 3600000;
+  let total, rate;
+  if (hours >= 24) {
+    const days = Math.max(1, Math.ceil(hours / 24));
+    total = days * bikeData.price_per_day;
+    rate  = `${fmt.money(bikeData.price_per_day)}/day × ${days} day${days > 1 ? 's' : ''}`;
+  } else {
+    total = hours * bikeData.price_per_hour;
+    rate  = `${fmt.money(bikeData.price_per_hour)}/hr × ${hours.toFixed(1)} hrs`;
+  }
+  document.getElementById('est-dur').textContent   = `${hours.toFixed(1)} hours`;
+  document.getElementById('est-rate').textContent  = rate;
+  document.getElementById('est-total').textContent = fmt.money(total);
+  document.getElementById('cost-box').style.display = '';
+}
+
+/* ── Called on every date input change ─────────────────────── */
+function onTimeChange() {
+  calcCost();
+  // FIX: reset availability when dates change so user must re-check
+  hideAvailMsg();
+  document.getElementById('book-btn').disabled = true;
+}
+
+/* ── Availability helpers ───────────────────────────────────── */
+function setAvailMsg(text, isGood) {
+  const el = document.getElementById('avail-msg');
+  el.textContent       = text;
+  el.style.display     = 'block';
+  el.style.background  = isGood ? 'rgba(16,185,129,.12)'  : 'rgba(239,68,68,.12)';
+  el.style.border      = isGood ? '1px solid rgba(16,185,129,.3)' : '1px solid rgba(239,68,68,.3)';
+  el.style.color       = isGood ? '#34d399'               : '#f87171';
+}
+function hideAvailMsg() {
+  document.getElementById('avail-msg').style.display = 'none';
+}
+
+/* ── Check Availability ─────────────────────────────────────── */
+async function checkAvail() {
+  const start = document.getElementById('bk-start').value;
+  const end   = document.getElementById('bk-end').value;
+
+  if (!start || !end) {
+    toast('Please select start and end dates first', 'error');
+    return;
+  }
+  if (new Date(end) <= new Date(start)) {
+    toast('End time must be after start time', 'error');
+    return;
+  }
+  if (new Date(start) < new Date()) {
+    toast('Start time cannot be in the past', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('check-btn');
+  btn.disabled     = true;
+  btn.textContent  = 'Checking…';
+  setAvailMsg('Checking availability…', true);
+
+  try {
+    const res = await api.get(`/bikes/${bikeId}/availability?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    if (res.available) {
+      setAvailMsg('✓ Available! You can book now.', true);
+      document.getElementById('book-btn').disabled = false;
+    } else {
+      setAvailMsg('✕ Not available for this time slot. Try different dates.', false);
+      document.getElementById('book-btn').disabled = true;
+    }
+  } catch (e) {
+    if (e.message === 'backend_offline') {
+      // Demo mode: assume available
+      setAvailMsg('✓ Available (demo mode — backend offline)', true);
+      document.getElementById('book-btn').disabled = false;
+    } else {
+      setAvailMsg(`Error: ${e.message}`, false);
+    }
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = '🔍 Check Availability';
+  }
+}
+
+/* ── Book Now ───────────────────────────────────────────────── */
+async function bookNow() {
+  if (!auth.isLoggedIn()) { location.href = 'login.html'; return; }
+
+  const start  = document.getElementById('bk-start').value;
+  const end    = document.getElementById('bk-end').value;
+  const pickup = document.getElementById('bk-pickup').value.trim();
+  const notes  = document.getElementById('bk-notes').value.trim();
+
+  /* Client-side validation */
+  if (!start)  { toast('Please select a start date and time', 'error'); return; }
+  if (!end)    { toast('Please select an end date and time', 'error'); return; }
+  if (!pickup) { toast('Please enter a pickup location', 'error'); return; }
+  if (new Date(end) <= new Date(start)) {
+    toast('End time must be after start time', 'error'); return;
+  }
+  if (new Date(start) < new Date()) {
+    toast('Start time cannot be in the past', 'error'); return;
+  }
+
+  const btn = document.getElementById('book-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Creating booking…';
+
+  try {
+    const res = await api.post('/bookings/', {
+      bike_id:          bikeId,
+      start_time:       new Date(start).toISOString(),
+      end_time:         new Date(end).toISOString(),
+      pickup_location:  pickup,
+      notes,
+    });
+
+    if (!res || !res.booking) throw new Error('Invalid response from server');
+
+    toast('Booking created! Redirecting to payment…', 'success');
+    setTimeout(() => {
+      location.href = `payment.html?booking_id=${res.booking._id}&amount=${res.booking.total_amount}`;
+    }, 900);
+
+  } catch (e) {
+    if (e.message === 'backend_offline') {
+      /* Demo mode: simulate booking and go to demo payment */
+      toast('Demo mode: simulating booking…', 'info');
+      const demoAmt = calcDemoAmount(start, end);
+      setTimeout(() => {
+        location.href = `payment.html?booking_id=DEMO_${Date.now()}&amount=${demoAmt}&demo=1`;
+      }, 900);
+    } else {
+      toast(e.message || 'Booking failed. Please try again.', 'error');
+      btn.disabled    = false;
+      btn.textContent = 'Book Now';
+    }
+  }
+}
+
+/* Helper: compute demo amount from dates */
+function calcDemoAmount(start, end) {
+  if (!bikeData) return 0;
+  const hours = (new Date(end) - new Date(start)) / 3600000;
+  if (hours >= 24) {
+    return Math.max(1, Math.ceil(hours / 24)) * bikeData.price_per_day;
+  }
+  return Math.round(hours * bikeData.price_per_hour);
+}
+
+/* ── Load user's completed bookings for review select ──────── */
+async function loadMyCompletedBookings() {
+  try {
+    const bks = await api.get('/bookings/my?status=completed');
+    const sel = document.getElementById('rev-booking');
+    (bks || [])
+      .filter(b => b.bike_id === bikeId)
+      .forEach(b => {
+        const o = document.createElement('option');
+        o.value       = b._id;
+        o.textContent = `Booking on ${fmt.date(b.start_time)}`;
+        sel.appendChild(o);
+      });
+  } catch { /* ignore */ }
+}
+
+/* ── Review Modal ───────────────────────────────────────────── */
+function openRevModal() {
+  document.getElementById('rev-modal').style.display = 'flex';  // FIX: use display:flex not toggle
+  document.body.style.overflow = 'hidden';
+}
+function closeRevModal() {
+  document.getElementById('rev-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+// Close on backdrop click
+document.getElementById('rev-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeRevModal();
+});
+
+function setRating(n) {
+  starRating = n;
+  document.querySelectorAll('.star-btn').forEach(s => {
+    s.style.color = parseInt(s.dataset.v) <= n ? '#f59e0b' : '#374151';
+  });
+  document.getElementById('rating-label').textContent = STAR_LABELS[n] || '';
+}
+
+async function submitReview() {
+  const comment    = document.getElementById('rev-comment').value.trim();
+  const booking_id = document.getElementById('rev-booking').value;
+  if (!starRating)  { toast('Please select a star rating', 'error'); return; }
+  if (!comment)     { toast('Please write your review comment', 'error'); return; }
+  if (!booking_id)  { toast('Please select which booking you are reviewing', 'error'); return; }
+
+  try {
+    await api.post('/reviews/', {
+      bike_id: bikeId, booking_id, rating: starRating, comment,
+    });
+    toast('Review submitted! Thank you 🙏', 'success');
+    closeRevModal();
+    // Reload bike to refresh reviews
+    setTimeout(loadBike, 600);
+  } catch (e) {
+    toast(e.message === 'backend_offline' ? 'Cannot submit review — backend offline' : (e.message || 'Submission failed'), 'error');
+  }
+}
+
+/* ── Init ───────────────────────────────────────────────────── */
+loadBike();
+</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login — RentBike</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif}h1,h2,.fd{font-family:'Syne',sans-serif}
+body{background:#0f0f1a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:linear-gradient(135deg,#1a1a2e,#16162a);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:36px;width:100%;max-width:440px}
+.inp{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px;color:#fff;font-size:14px;outline:none;transition:border .2s;box-sizing:border-box}
+.inp:focus{border-color:#f59e0b;background:rgba(245,158,11,.05)}
+.inp::placeholder{color:rgba(255,255,255,.3)}
+.inp option{background:#1f2937}
+.btn{width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f0f1a;font-weight:700;border:none;border-radius:12px;padding:14px;font-size:15px;cursor:pointer;transition:all .2s}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 40px rgba(245,158,11,.35)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.tab{flex:1;padding:10px;border-radius:10px;border:1px solid transparent;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;background:none;color:rgba(255,255,255,.35)}
+.tab.active{background:rgba(245,158,11,.15);color:#f59e0b;border-color:rgba(245,158,11,.4)}
+label{display:block;color:#9ca3af;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.lnk{color:#f59e0b;background:none;border:none;cursor:pointer;font-size:14px;font-weight:600}
+.lnk:hover{color:#fbbf24}
+</style>
+</head>
+<body>
+<div style="width:100%;max-width:440px">
+  <div style="text-align:center;margin-bottom:28px">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none">
+      <span style="font-size:32px">🏍️</span>
+      <span class="fd" style="color:#fff;font-size:22px;font-weight:900">Rent<span style="color:#f59e0b">Bike</span></span>
+    </a>
+    <p style="color:#6b7280;font-size:13px;margin-top:6px">Ride freely, anytime</p>
+  </div>
+
+  <div class="card">
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:5px;margin-bottom:28px">
+      <button id="tab-login" class="tab active" onclick="switchTab('login')">Sign In</button>
+      <button id="tab-reg"   class="tab"        onclick="switchTab('register')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="form-login">
+      <h2 class="fd" style="color:#fff;font-size:24px;margin-bottom:4px">Welcome back</h2>
+      <p style="color:#6b7280;font-size:14px;margin-bottom:24px">Sign in to your account</p>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <label>Email</label>
+          <input id="l-email" type="email" class="inp" placeholder="you@example.com">
+        </div>
+        <div>
+          <label>Password</label>
+          <div style="position:relative">
+            <input id="l-pass" type="password" class="inp" placeholder="Your password" style="padding-right:44px">
+            <button type="button" onclick="togglePwd('l-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#6b7280">👁</button>
+          </div>
+        </div>
+        <button id="l-btn" class="btn" onclick="doLogin()">Sign In →</button>
+      </div>
+      <div style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,.07);color:#6b7280;font-size:14px">
+        No account? <button class="lnk" onclick="switchTab('register')">Sign up free</button>
+      </div>
+      <!-- Quick Demo -->
+      <div style="margin-top:16px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px">
+        <p style="color:#f59e0b;font-size:12px;font-weight:700;margin-bottom:10px">⚡ Quick Demo Login (works offline)</p>
+        <div style="display:flex;gap:8px">
+          <button onclick="quickDemoLogin('admin')"  style="flex:1;padding:8px;border-radius:8px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:12px;font-weight:700;cursor:pointer">👑 Admin</button>
+          <button onclick="quickDemoLogin('vendor')" style="flex:1;padding:8px;border-radius:8px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.35);color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer">🏪 Vendor</button>
+          <button onclick="quickDemoLogin('user')"   style="flex:1;padding:8px;border-radius:8px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.35);color:#34d399;font-size:12px;font-weight:700;cursor:pointer">🚴 User</button>
+        </div>
+        <p style="color:#6b7280;font-size:11px;margin-top:8px;text-align:center">Or use: admin@rentbike.in / admin123</p>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="form-reg" style="display:none">
+      <h2 class="fd" style="color:#fff;font-size:24px;margin-bottom:4px">Create account</h2>
+      <p style="color:#6b7280;font-size:14px;margin-bottom:24px">Join thousands of riders today</p>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div><label>Full Name</label><input id="r-name" type="text" class="inp" placeholder="Your full name"></div>
+        <div><label>Email</label><input id="r-email" type="email" class="inp" placeholder="you@example.com"></div>
+        <div><label>Phone</label><input id="r-phone" type="tel" class="inp" placeholder="+91 XXXXX XXXXX"></div>
+        <div>
+          <label>Password</label>
+          <div style="position:relative">
+            <input id="r-pass" type="password" class="inp" placeholder="Min 6 characters" style="padding-right:44px">
+            <button type="button" onclick="togglePwd('r-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#6b7280">👁</button>
+          </div>
+        </div>
+        <div>
+          <label>Account Type</label>
+          <select id="r-role" class="inp">
+            <option value="user">🚴 Rider — Rent bikes</option>
+            <option value="vendor">🏪 Vendor — List my bikes</option>
+          </select>
+        </div>
+        <button id="r-btn" class="btn" onclick="doRegister()">Create Account →</button>
+      </div>
+      <div style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,.07);color:#6b7280;font-size:14px">
+        Have an account? <button class="lnk" onclick="switchTab('login')">Sign in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// Redirect if already logged in
+if (auth.isLoggedIn()) location.href = 'dashboard.html';
+
+// Check URL for ?tab=register
+if (new URLSearchParams(location.search).get('tab') === 'register') switchTab('register');
+
+function switchTab(tab) {
+  document.getElementById('form-login').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('form-reg').style.display   = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').className = 'tab' + (tab === 'login' ? ' active' : '');
+  document.getElementById('tab-reg').className   = 'tab' + (tab === 'register' ? ' active' : '');
+}
+
+function togglePwd(id, btn) {
+  const el = document.getElementById(id);
+  el.type  = el.type === 'password' ? 'text' : 'password';
+  btn.textContent = el.type === 'password' ? '👁' : '🙈';
+}
+
+function setBtn(id, loading, label) {
+  const b = document.getElementById(id);
+  b.disabled = loading;
+  b.textContent = loading ? 'Please wait…' : label;
+}
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  if (!email || !pass) return toast('Please fill all fields', 'error');
+  setBtn('l-btn', true, 'Sign In →');
+  try {
+    const res = await api.post('/auth/login', { email, password: pass });
+    saveSession(res);
+    toast(`Welcome back, ${res.user.name}! 🎉`, 'success');
+    setTimeout(() => location.href = 'dashboard.html', 700);
+  } catch (e) {
+    if (e.message === 'backend_offline') {
+      // Try demo credentials
+      const demos = { 'admin@rentbike.in':'admin123','vendor@rentbike.in':'vendor123','rohan@example.com':'user123','priya@example.com':'user123','arjun@example.com':'user123' };
+      const roles  = { 'admin@rentbike.in':'admin','vendor@rentbike.in':'vendor','rohan@example.com':'user','priya@example.com':'user','arjun@example.com':'user' };
+      if (demos[email.toLowerCase()] === pass) {
+        demoLogin(roles[email.toLowerCase()] || 'user');
+        toast('Logged in (demo mode) 🎉', 'success');
+        setTimeout(() => location.href = 'dashboard.html', 700);
+      } else {
+        toast('Backend offline. Use Quick Demo Login below or check credentials.', 'warning');
+      }
+    } else {
+      toast(e.message || 'Login failed', 'error');
+    }
+  } finally { setBtn('l-btn', false, 'Sign In →'); }
+}
+
+async function doRegister() {
+  const name  = document.getElementById('r-name').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const phone = document.getElementById('r-phone').value.trim();
+  const pass  = document.getElementById('r-pass').value;
+  const role  = document.getElementById('r-role').value;
+  if (!name||!email||!pass) return toast('Name, email and password are required','error');
+  if (pass.length < 6) return toast('Password must be at least 6 characters','error');
+  setBtn('r-btn', true, 'Create Account →');
+  try {
+    const res = await api.post('/auth/register', { name, email, phone, password: pass, role });
+    saveSession(res);
+    toast('Account created! Welcome 🏍️','success');
+    setTimeout(() => location.href = 'dashboard.html', 700);
+  } catch (e) {
+    toast(e.message === 'backend_offline' ? 'Backend offline — start the Flask server first' : (e.message||'Registration failed'),'error');
+  } finally { setBtn('r-btn', false, 'Create Account →'); }
+}
+
+function saveSession(res) {
+  localStorage.setItem('access_token',  res.access_token);
+  localStorage.setItem('refresh_token', res.refresh_token);
+  localStorage.setItem('user', JSON.stringify(res.user));
+}
+
+function quickDemoLogin(role) {
+  demoLogin(role);
+  const names = {admin:'Admin User',vendor:'Raj Vendor',user:'Rohan Sharma'};
+  toast(`Logged in as ${names[role]}! 🎉`, 'success');
+  setTimeout(() => location.href = 'dashboard.html', 600);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('form-login').style.display !== 'none') doLogin();
+    else doRegister();
+  }
+});
+</script>
+</body>
+</html>
