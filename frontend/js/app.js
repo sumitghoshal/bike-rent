@@ -1,7 +1,7 @@
 /* ================================================================
    RentBike — Shared JS (app.js) — Enhanced Edition
 ================================================================ */
-const API = 'http://localhost:5000/api';
+const API_BASE = "https://bike-rent-tchw.onrender.com/api";
 
 const api = {
   async req(method, path, body = null, isForm = false) {
