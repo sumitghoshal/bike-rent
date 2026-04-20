@@ -1,34 +1,38 @@
 /* ================================================================
    RentBike — Shared JS (app.js) — Enhanced Edition
 ================================================================ */
-const API_BASE = "https://bike-rent-tchw.onrender.com/api";
+const API = "https://bike-rent-tchw.onrender.com/api";
 
 const api = {
   async req(method, path, body = null, isForm = false) {
     const tok = localStorage.getItem('access_token');
     const headers = {};
+
     if (!isForm) headers['Content-Type'] = 'application/json';
-    if (tok)     headers['Authorization'] = `Bearer ${tok}`;
+    if (tok) headers['Authorization'] = `Bearer ${tok}`;
+
     const opts = { method, headers };
     if (body) opts.body = isForm ? body : JSON.stringify(body);
-    try {
-      const res  = await fetch(API + path, opts);
-      const json = await res.json().catch(() => ({}));
-      if (res.status === 401) { const ok = await api.tryRefresh(); if (ok) return api.req(method, path, body, isForm); api.logout(); return null; }
-      if (!res.ok) { throw new Error(json.error || json.message || `Server error ${res.status}`); }
-      return json;
-    } catch (e) { if (e instanceof TypeError) { throw new Error('backend_offline'); } throw e; }
+
+    const res = await fetch(API + path, opts);
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(json.error || json.message || `Server error ${res.status}`);
+    }
+
+    return json;
   },
-  get:   p       => api.req('GET',   p),
-  post:  (p,b,f) => api.req('POST',  p, b, f),
-  put:   (p,b)   => api.req('PUT',   p, b),
-  del:   p       => api.req('DELETE',p),
-  async tryRefresh() {
-    const rt = localStorage.getItem('refresh_token');
-    if (!rt || rt.startsWith('demo_')) return false;
-    try { const r = await fetch(API + '/auth/refresh', { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${rt}`} }); if (!r.ok) return false; const j = await r.json(); localStorage.setItem('access_token', j.access_token); return true; } catch { return false; }
-  },
-  logout() { ['access_token','refresh_token','user'].forEach(k => localStorage.removeItem(k)); window.location.href = 'login.html'; }
+
+  get: (p) => api.req('GET', p),
+  post: (p, b, f) => api.req('POST', p, b, f),
+  put: (p, b) => api.req('PUT', p, b),
+  del: (p) => api.req('DELETE', p),
+
+  logout() {
+    ['access_token', 'refresh_token', 'user'].forEach(k => localStorage.removeItem(k));
+    window.location.href = 'login.html';
+  }
 };
 
 const auth = {
