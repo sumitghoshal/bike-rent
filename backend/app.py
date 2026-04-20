@@ -34,11 +34,16 @@ def create_app() -> Flask:
     app.config.from_object(Config)
 
     # ── Extensions ───────────────────────────────────────────────
-    CORS(app, resources={r'/api/*': {'origins': '*'}},
-         supports_credentials=True,
-         allow_headers=['Content-Type', 'Authorization'],
-         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
-
+    CORS(
+    app,
+    resources={r"/api/*": {"origins": [
+        "https://bike-rent-sajj.vercel.app",
+        "http://localhost:3000"
+    ]}},
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
     JWTManager(app)
 
     # ── Warm MongoDB connection on startup ────────────────────────
@@ -110,16 +115,18 @@ def create_app() -> Flask:
     return app
 
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     port = int(os.environ.get('PORT', 5000))
+
     print(f"""
-╔══════════════════════════════════════════════════════╗
-║       🏍️  RentBike API Server Starting...           ║
-╠══════════════════════════════════════════════════════╣
-║  URL:      http://localhost:{port}                    ║
-║  Health:   http://localhost:{port}/api/health         ║
-║  Database: MongoDB Atlas                             ║
-╚══════════════════════════════════════════════════════╝
+╔════════════════════════════════════╗
+║ 🏍️ RentBike API Starting          ║
+╠════════════════════════════════════╣
+║ URL: http://localhost:{port}      ║
+║ Health: /api/health               ║
+╚════════════════════════════════════╝
     """)
-    app.run(debug=True, host='0.0.0.0', port=port)
+
+    app.run(host='0.0.0.0', port=port)
